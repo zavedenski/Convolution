@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-from skimage import img_as_ubyte
 import skimage.measure as msr
 from PIL import Image
 import numpy as np
@@ -13,7 +12,7 @@ imageArrayList = imageArray.tolist()
 #---Open-Origin-Image--END-------------------------------------------
 
 #---Open-Filter-Image------------------------------------------------
-filterFile = Image.open("Filters/line3.jpg")
+filterFile = Image.open("Filters/10x10.jpg")
 filterFile = filterFile.convert('L')
 filterArray = np.array(filterFile)
 filterArrayList = filterArray.tolist()
@@ -22,24 +21,23 @@ filterArrayList = filterArray.tolist()
 #==RGB====
 #print("[originImage] Colls[y]: %d, Rows[x]: %d, Layouts[z]: %d" %(len(imageArray), len(imageArray[0]), len(imageArray[0,0])))
 #print("[filterImage] Colls[y]: %d, Rows[x]: %d, Layouts[z]: %d" %(len(filterArray), len(filterArray[0]), len(filterArray[0,0])))
-
+#===L=====
 print("[originImage] Colls[y]: %d, Rows[x]: %d" %(len(imageArray), len(imageArray[0])))
 print("[filterImage] Colls[y]: %d, Rows[x]: %d" %(len(filterArray), len(filterArray[0])))
 
 newImage = []
-
 xLen, yLen = len(imageArray[0]), len(imageArray)
-print("xLen: %d, yLen: %d" %(xLen, yLen))
+xFilter, yFilter = len(filterArray[0]), len(filterArray)
 xAsix, yAsix = 0, 0
 
 while True: #Rows
     while True: #Colls
-        if yAsix <= yLen-20:
-            newImage.append(imageArray[xAsix:xAsix+20, yAsix:yAsix+20])
+        if yAsix <= yLen-yFilter:
+            newImage.append(imageArray[xAsix:xAsix+xFilter, yAsix:yAsix+yFilter] * filterArray)
             yAsix += 1
         else:
             yAsix = 0;  break
-    if xAsix < xLen-20:
+    if xAsix < xLen-xFilter:
         xAsix += 1
     else:   break
 
@@ -49,17 +47,18 @@ print("NewImageLen: ", len(newImage))
 
 #---newImage[78961[20[20]]]------------------------------------------
 for i in range(len(newImage)):
-    newImage[i] = np.mean(newImage[i])
+    newImage[i] = np.mean(newImage[i])  #np.max(newImage[i]) for RGB
 #---newImage[78961[float64]]--End------------------------------------
 
 #---newImage[78961[float64]]-----------------------------------------
+size = int((len(imageArray) - len(filterArray))/1 + 1)
 Buff = []
-for i in range(0, 78961, 281):
-    Buff.append(newImage[i:i+281])
+for i in range(0, size**2, size):
+    Buff.append(newImage[i:i+size])
 #---Buff[281[281[float64]]]--End-------------------------------------
 
 
-xero = np.empty((281,281))             #f(300-20)/1+1
+xero = np.empty((size,size))             #f(300-20)/1+1
 print("xero: %d, xero[0]: %d" %(len(xero), len(xero[0])))
 print("Buff: %d, Buff[0]: %d" %(len(Buff), len(Buff[0])))
 if len(xero) == len(Buff) and len(xero[0]) == len(Buff[0]) and type(xero[0][0]) == type(Buff[0][0]):
@@ -70,13 +69,13 @@ else:
 x, y = 0, 0
 while True:
     while True:
-        if y < 281:
+        if y < size:
             xero[x][y] = int(np.mean(Buff[x][y]))
             print('[x][y] = [%d][%d] ==> %d' %(x,y, Buff[x][y]))
             y += 1
         else:
             y = 0;  break
-    if x < 281-1:
+    if x < size-1:
         x +=1
     else:   break
 
